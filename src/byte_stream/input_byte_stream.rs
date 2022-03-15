@@ -28,6 +28,14 @@ impl<'a> InputByteStream<'a> {
     pub fn read_u32(&mut self) -> u32 { self.read_bytes(4) }
     pub fn read_i32(&mut self) -> i32 { self.read_bytes(4) }
 
+    pub fn read_string(&mut self) -> String {
+        let len = self.read_u32() as usize;
+        let mut bytes: Vec<u8> = vec![0; len];
+        for i in 0..len {
+            bytes[i] = self.read_u8();
+        }
+        unsafe { String::from_utf8_unchecked(bytes) }
+    }
     pub fn read_bool(&mut self) -> bool {
         let byte = self.read_u8();
         if byte == 0 { false } else { true }

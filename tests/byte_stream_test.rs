@@ -61,3 +61,12 @@ fn write_read_four_bytes() {
     assert_eq!(i.read_u32(), 4294967295);
     assert_eq!(i.read_i32(), -2i32);
 }
+
+
+#[test]
+fn write_read_string() {
+    let mut o = OutputByteStream::new();
+    o.write_string(&"hello rust!".to_string());
+    let mut i = InputByteStream::new(o.buffer());
+    assert_eq!("hello rust!", i.read_string().as_str());
+}

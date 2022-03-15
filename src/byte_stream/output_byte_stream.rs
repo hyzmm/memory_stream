@@ -40,5 +40,13 @@ impl OutputByteStream {
     pub fn write_u32(&mut self, data: u32) { self.write(&data) }
     pub fn write_i32(&mut self, data: i32) { self.write(&data) }
 
+    pub fn write_string(&mut self, data: &String) {
+        self.write_u32(data.len() as u32);
+        let bytes = data.as_bytes();
+        for byte in bytes {
+            self.write_u8(*byte);
+        }
+    }
+
     pub fn buffer(&self) -> &[u8] { &self.buf[0..self.head] }
 }
