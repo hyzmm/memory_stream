@@ -62,6 +62,17 @@ fn write_read_four_bytes() {
     assert_eq!(i.read_i32(), -2i32);
 }
 
+#[test]
+fn write_read_f32() {
+    let mut o = OutputByteStream::new();
+    o.write_f32(1.234);
+    o.write_f32(-1.234);
+    o.write_f32(f32::MAX);
+    let mut i = InputByteStream::new(o.buffer());
+    assert_eq!(1.234, i.read_f32());
+    assert_eq!(-1.234, i.read_f32());
+    assert_eq!(f32::MAX, i.read_f32());
+}
 
 #[test]
 fn write_read_string() {
