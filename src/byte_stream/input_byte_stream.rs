@@ -38,7 +38,7 @@ impl<'a> InputByteStream<'a> {
 
     pub fn read_string(&mut self) -> String {
         let len = self.read_u32() as usize;
-        let mut bytes: Vec<u8> = vec![0; len];
+        let mut bytes = vec![0; len];
         for i in 0..len {
             bytes[i] = self.read_u8();
         }
