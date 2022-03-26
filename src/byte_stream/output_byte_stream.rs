@@ -1,5 +1,6 @@
 use std::cmp::max;
 use std::mem;
+use std::ptr::copy_nonoverlapping;
 
 pub struct OutputByteStream {
     buf: Vec<u8>,
@@ -23,8 +24,12 @@ impl OutputByteStream {
             buf.resize(max(buf.len() * 2, self.head + num_bytes), 0);
         }
 
-        for i in 0..num_bytes {
-            self.buf[self.head + i] = unsafe { *ptr.offset(i as isize) };
+        unsafe {
+            copy_nonoverlapping(
+                data as *const _ as *const u8,
+                self.buf[self.head..].as_mut_ptr(),
+                num_bytes,
+            );
         }
         self.head += num_bytes;
     }
@@ -49,6 +54,11 @@ impl OutputByteStream {
             self.write_u8(*byte);
         }
     }
+
+    // pub fn write_vec(&mut self, data: Vec<T>) {
+    //     self.write_u32(data.len() as u32);
+    //
+    // }
 
     pub fn buffer(&self) -> &[u8] { &self.buf[0..self.head] }
 }
