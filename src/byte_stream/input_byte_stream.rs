@@ -1,13 +1,20 @@
+use std::mem::transmute;
+
+use crate::byte_stream::{Endianness, get_platform_endianness};
+use crate::byte_stream::swap_bytes::*;
+
 pub struct InputByteStream<'a> {
     buf: &'a [u8],
     head: usize,
+    endianness: Endianness,
 }
 
 impl<'a> InputByteStream<'a> {
-    pub fn new(buf: &'a [u8]) -> InputByteStream<'a> {
+    pub fn new(buf: &'a [u8], endianness: Endianness) -> InputByteStream<'a> {
         InputByteStream {
             buf,
             head: 0,
+            endianness,
         }
     }
 
@@ -27,14 +34,39 @@ impl<'a> InputByteStream<'a> {
         if byte == 0 { false } else { true }
     }
 
-    pub fn read_u16(&mut self) -> u16 { self.read_bytes(2) }
+    pub fn read_u16(&mut self) -> u16 {
+        let data = self.read_bytes(2);
+        if self.endianness != get_platform_endianness() {
+            swap_2_bytes(data)
+        } else {
+            data
+        }
+    }
+    pub fn read_i16(&mut self) -> i16 { self.read_u16() as i16 }
 
-    pub fn read_i16(&mut self) -> i16 { self.read_bytes(2) }
-    pub fn read_u32(&mut self) -> u32 { self.read_bytes(4) }
+    pub fn read_u32(&mut self) -> u32 {
+        let data = self.read_bytes(4);
+        if self.endianness != get_platform_endianness() {
+            swap_4_bytes(data)
+        } else {
+            data
+        }
+    }
+    pub fn read_i32(&mut self) -> i32 { self.read_u32() as i32 }
 
-    pub fn read_i32(&mut self) -> i32 { self.read_bytes(4) }
+    pub fn read_u64(&mut self) -> u64 {
+        let data = self.read_bytes(8);
+        if self.endianness != get_platform_endianness() {
+            swap_8_bytes(data)
+        } else {
+            data
+        }
+    }
+    pub fn read_i64(&mut self) -> i64 { self.read_u64() as i64 }
 
-    pub fn read_f32(&mut self) -> f32 { self.read_bytes(4) }
+    pub fn read_f32(&mut self) -> f32 {
+        unsafe { transmute(self.read_u32()) }
+    }
 
     pub fn read_string(&mut self) -> String {
         let len = self.read_u32() as usize;
