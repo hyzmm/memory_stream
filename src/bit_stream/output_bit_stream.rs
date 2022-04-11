@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::mem::size_of_val;
 use std::ptr::addr_of;
 
@@ -33,9 +34,9 @@ impl OutputBitStream {
     fn write_byte(&mut self, data: u8, bit_count: usize) {
         assert!(bit_count <= 8);
 
-        let next_bit_head = self.bit_head + bit_count;
-        if next_bit_head > self.buf.len() * 8 {
-            self.buf.resize(self.buf.len() * 2, 0);
+        let next_byte_head = (self.bit_head + bit_count) >> 3;
+        if next_byte_head > self.buf.len() {
+            self.buf.resize(max(self.buf.len(), next_byte_head) * 2, 0);
         }
 
         let byte_offset = self.byte_offset();
@@ -50,7 +51,7 @@ impl OutputBitStream {
             self.buf[byte_offset + 1] = data >> bits_free_this_byte;
         }
 
-        self.bit_head = next_bit_head;
+        self.bit_head = self.bit_head + bit_count;
     }
 
     fn write_bits(&mut self, data: *const u8, bit_count: usize) {
