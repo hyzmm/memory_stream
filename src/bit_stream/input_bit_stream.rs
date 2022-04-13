@@ -6,6 +6,11 @@ pub struct InputBitStream<'a> {
 }
 
 impl<'a> InputBitStream<'a> {
+    #[inline]
+    fn byte_offset(&self) -> usize { self.bit_head >> 3 }
+    #[inline]
+    fn bit_offset(&self) -> usize { self.bit_head & 0x7 }
+
     pub fn new(buf: &'a [u8]) -> InputBitStream<'a> {
         InputBitStream {
             buf,
@@ -14,8 +19,9 @@ impl<'a> InputBitStream<'a> {
     }
     // 读取最多一个字节，允许读取 <= 8 数据。如果当前字节剩余位数不足，和下一个字节组合成一个 u8
     fn read_byte(&mut self, bit_count: usize) -> u8 {
-        let byte_offset = self.bit_head >> 3;
-        let bit_offset = self.bit_head & 0x7;
+        // 计算字节偏移和位偏移
+        let byte_offset = self.byte_offset();
+        let bit_offset = self.bit_offset();
 
         // 左侧 8 - bit_offset 位数据
         let mut out_data = self.buf[byte_offset] >> bit_offset;
@@ -24,7 +30,7 @@ impl<'a> InputBitStream<'a> {
         if bits_free_this_byte < bit_count {
             out_data |= self.buf[byte_offset + 1] << bits_free_this_byte;
         }
-        out_data &= !(0xffu32 << bit_count) as u8;
+        out_data &= !(0xffu16 << bit_count) as u8;
         self.bit_head += bit_count;
         out_data
     }

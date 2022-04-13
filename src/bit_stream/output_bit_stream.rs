@@ -39,14 +39,17 @@ impl OutputBitStream {
             self.buf.resize(max(self.buf.len(), next_byte_head) * 2, 0);
         }
 
+        // 计算字节偏移和位偏移
         let byte_offset = self.byte_offset();
         let bit_offset = self.bit_offset();
 
+        // 写入数据和原有数据进行整合
         let current_mask = !(0xFF << bit_offset);
         self.buf[byte_offset] = (self.buf[byte_offset] & current_mask) | (data << bit_offset);
 
         let bits_free_this_byte = 8 - bit_offset;
 
+        // 将当前字节无法存下的剩余数据写入到下一个字节
         if bits_free_this_byte < bit_count {
             self.buf[byte_offset + 1] = data >> bits_free_this_byte;
         }
@@ -54,7 +57,7 @@ impl OutputBitStream {
         self.bit_head = self.bit_head + bit_count;
     }
 
-    fn write_bits(&mut self, data: *const u8, bit_count: usize) {
+    fn write_bytes(&mut self, data: *const u8, bit_count: usize) {
         let mut bit_count = bit_count;
         let mut offset = 0;
         while bit_count > 8 {
@@ -68,7 +71,7 @@ impl OutputBitStream {
     }
 
     fn write_any<T: Sized>(&mut self, obj: &T) {
-        self.write_bits(
+        self.write_bytes(
             addr_of!(*obj) as *const u8,
             size_of_val(obj) * 8,
         );
