@@ -43,7 +43,7 @@ impl<'a> InputBitStream<'a> {
         bytes
     }
 
-    fn read_any<T: Sized>(&mut self) -> T {
+    fn read<T: Sized>(&mut self) -> T {
         unsafe {
             let bytes = self.read_bytes(size_of::<T>());
             std::ptr::read(bytes.as_ptr() as *const _)
@@ -52,19 +52,19 @@ impl<'a> InputBitStream<'a> {
 
     pub fn read_bool(&mut self) -> bool { self.read_byte(1) == 1 }
 
-    pub fn read_u8(&mut self) -> u8 { self.read_any() }
-    pub fn read_i8(&mut self) -> i8 { self.read_any() }
+    pub fn read_u8(&mut self) -> u8 { self.read() }
+    pub fn read_i8(&mut self) -> i8 { self.read() }
 
-    pub fn read_u16(&mut self) -> u16 { self.read_any() }
-    pub fn read_i16(&mut self) -> i16 { self.read_any() }
+    pub fn read_u16(&mut self) -> u16 { self.read() }
+    pub fn read_i16(&mut self) -> i16 { self.read() }
 
-    pub fn read_u32(&mut self) -> u32 { self.read_any() }
-    pub fn read_i32(&mut self) -> i32 { self.read_any() }
+    pub fn read_u32(&mut self) -> u32 { self.read() }
+    pub fn read_i32(&mut self) -> i32 { self.read() }
 
-    pub fn read_u64(&mut self) -> u64 { self.read_any() }
-    pub fn read_i64(&mut self) -> i64 { self.read_any() }
+    pub fn read_u64(&mut self) -> u64 { self.read() }
+    pub fn read_i64(&mut self) -> i64 { self.read() }
 
-    pub fn read_f32(&mut self) -> f32 { self.read_any() }
+    pub fn read_f32(&mut self) -> f32 { self.read() }
 
     pub fn read_string(&mut self) -> String {
         let len = self.read_u32() as usize;
