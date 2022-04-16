@@ -1,5 +1,5 @@
 use std::cmp::max;
-use std::mem::size_of_val;
+use std::mem::{size_of_val, transmute};
 use std::ptr::addr_of;
 
 pub struct OutputBitStream {
@@ -87,16 +87,16 @@ impl OutputBitStream {
     pub fn write_u8(&mut self, value: u8) { self.write(&value) }
     pub fn write_i8(&mut self, value: i8) { self.write(&value) }
 
-    pub fn write_u16(&mut self, value: u16) { self.write(&value) }
-    pub fn write_i16(&mut self, value: i16) { self.write(&value) }
+    pub fn write_u16(&mut self, value: u16) { self.write(&value.to_be()) }
+    pub fn write_i16(&mut self, value: i16) { self.write(&value.to_be()) }
 
-    pub fn write_u32(&mut self, value: u32) { self.write(&value) }
-    pub fn write_i32(&mut self, value: i32) { self.write(&value) }
+    pub fn write_u32(&mut self, value: u32) { self.write(&value.to_be()) }
+    pub fn write_i32(&mut self, value: i32) { self.write(&value.to_be()) }
 
-    pub fn write_u64(&mut self, value: u64) { self.write(&value) }
-    pub fn write_i64(&mut self, value: i64) { self.write(&value) }
+    pub fn write_u64(&mut self, value: u64) { self.write(&value.to_be()) }
+    pub fn write_i64(&mut self, value: i64) { self.write(&value.to_be()) }
 
-    pub fn write_f32(&mut self, value: f32) { self.write(&value) }
+    pub fn write_f32(&mut self, value: f32) { self.write_u32(unsafe { transmute(value) }) }
 
     pub fn write_string(&mut self, data: &String) {
         self.write_u32(data.len() as u32);
