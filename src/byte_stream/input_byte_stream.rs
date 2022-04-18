@@ -18,7 +18,7 @@ impl<'a> InputByteStream<'a> {
         }
     }
 
-    fn read<T: Sized>(&mut self) -> T {
+    fn read<T>(&mut self) -> T {
         let num_bytes = size_of::<T>();
         let bytes = &self.buf[self.head..self.head + num_bytes];
         self.head += num_bytes;

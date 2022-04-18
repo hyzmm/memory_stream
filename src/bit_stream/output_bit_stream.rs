@@ -70,7 +70,7 @@ impl OutputBitStream {
         }
     }
 
-    fn write<T: Sized>(&mut self, obj: &T) {
+    fn write<T>(&mut self, obj: &T) {
         self.write_bytes(
             addr_of!(*obj) as *const u8,
             size_of_val(obj) * 8,

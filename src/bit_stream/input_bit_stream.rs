@@ -4,7 +4,8 @@ macro_rules! read_be {
     ( $self: ident, $t:ty ) => {
         {
             const SIZE: usize = size_of::<$t>();
-            let ptr = $self.read_bytes(SIZE).as_ptr() as *const [u8; SIZE];
+            let bytes = $self.read_bytes(SIZE);
+            let ptr = bytes.as_ptr() as *const [u8; SIZE];
             <$t>::from_be_bytes(unsafe { ptr.read() })
         }
     };
@@ -53,7 +54,7 @@ impl<'a> InputBitStream<'a> {
         bytes
     }
 
-    fn read<T: Sized>(&mut self) -> T {
+    fn read<T>(&mut self) -> T {
         unsafe {
             let bytes = self.read_bytes(size_of::<T>());
             std::ptr::read(bytes.as_ptr() as *const _)
