@@ -1,5 +1,8 @@
+use std::default::Default;
+
 use memory_stream::bit_stream::input_bit_stream::InputBitStream;
 use memory_stream::bit_stream::output_bit_stream::OutputBitStream;
+use memory_stream::byte_stream::Endianness;
 
 #[test]
 fn write_read_one_byte() {
@@ -33,7 +36,6 @@ fn write_read_two_bytes() {
     assert_eq!(i.read_u16(), 65535);
     assert_eq!(i.read_i16(), -2i16);
 }
-
 
 #[test]
 fn write_read_four_bytes() {
@@ -89,21 +91,33 @@ fn write_read_string() {
 
 #[test]
 fn write_read_all() {
-    let mut o = OutputBitStream::default();
-    o.write_bool(true);
-    o.write_i8(127);
-    o.write_i16(30000);
-    o.write_i32(65536);
-    o.write_i64(-5611626018427388000);
-    o.write_f32(123.456);
-    o.write_string(&"hello world!".to_string());
+    fn t(endianness: Endianness) {
+        let mut o = OutputBitStream {
+            endianness,
+            ..Default::default()
+        };
+        o.write_bool(true);
+        o.write_i8(127);
+        o.write_i16(30000);
+        o.write_i32(65536);
+        o.write_i64(-5611626018427388000);
+        o.write_f32(123.456);
+        o.write_string(&"hello world!".to_string());
 
-    let mut i = InputBitStream::new(o.buffer());
-    assert_eq!(true, i.read_bool());
-    assert_eq!(127, i.read_i8());
-    assert_eq!(30000, i.read_i16());
-    assert_eq!(65536, i.read_i32());
-    assert_eq!(-5611626018427388000, i.read_i64());
-    assert_eq!(123.456, i.read_f32());
-    assert_eq!("hello world!", i.read_string().as_str());
+        let mut i = InputBitStream {
+            buf: o.buffer(),
+            endianness,
+            ..Default::default()
+        };
+        assert_eq!(true, i.read_bool());
+        assert_eq!(127, i.read_i8());
+        assert_eq!(30000, i.read_i16());
+        assert_eq!(65536, i.read_i32());
+        assert_eq!(-5611626018427388000, i.read_i64());
+        assert_eq!(123.456, i.read_f32());
+        assert_eq!("hello world!", i.read_string().as_str());
+    }
+
+    t(Endianness::LittleEndian);
+    t(Endianness::BigEndian);
 }

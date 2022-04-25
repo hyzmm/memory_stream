@@ -1,31 +1,51 @@
 use std::mem::{size_of, transmute};
 
+use crate::byte_stream::Endianness;
+
 macro_rules! read_be {
-    ( $self: ident, $t:ty ) => {
-        {
-            const SIZE: usize = size_of::<$t>();
-            let bytes = $self.read_bytes(SIZE);
-            let ptr = bytes.as_ptr() as *const [u8; SIZE];
+    ( $self: ident, $t:ty ) => {{
+        const SIZE: usize = size_of::<$t>();
+        let bytes = $self.read_bytes(SIZE);
+        let ptr = bytes.as_ptr() as *const [u8; SIZE];
+        if $self.endianness == Endianness::BigEndian {
             <$t>::from_be_bytes(unsafe { ptr.read() })
+        } else {
+            <$t>::from_le_bytes(unsafe { ptr.read() })
         }
-    };
+    }};
 }
 
 pub struct InputBitStream<'a> {
-    buf: &'a [u8],
-    bit_head: usize,
+    pub buf: &'a [u8],
+    pub bit_head: usize,
+    pub endianness: Endianness,
+}
+
+impl<'a> Default for InputBitStream<'a> {
+    fn default() -> Self {
+        Self {
+            buf: &[],
+            bit_head: 0,
+            endianness: Endianness::BigEndian,
+        }
+    }
 }
 
 impl<'a> InputBitStream<'a> {
     #[inline]
-    fn byte_offset(&self) -> usize { self.bit_head >> 3 }
+    fn byte_offset(&self) -> usize {
+        self.bit_head >> 3
+    }
     #[inline]
-    fn bit_offset(&self) -> usize { self.bit_head & 0x7 }
+    fn bit_offset(&self) -> usize {
+        self.bit_head & 0x7
+    }
 
     pub fn new(buf: &'a [u8]) -> InputBitStream<'a> {
         InputBitStream {
             buf,
             bit_head: 0,
+            endianness: Endianness::BigEndian,
         }
     }
     // 读取最多一个字节，允许读取 <= 8 数据。如果当前字节剩余位数不足，和下一个字节组合成一个 u8
@@ -61,21 +81,41 @@ impl<'a> InputBitStream<'a> {
         }
     }
 
-    pub fn read_bool(&mut self) -> bool { self.read_byte(1) == 1 }
+    pub fn read_bool(&mut self) -> bool {
+        self.read_byte(1) == 1
+    }
 
-    pub fn read_u8(&mut self) -> u8 { self.read() }
-    pub fn read_i8(&mut self) -> i8 { self.read() }
+    pub fn read_u8(&mut self) -> u8 {
+        self.read()
+    }
+    pub fn read_i8(&mut self) -> i8 {
+        self.read()
+    }
 
-    pub fn read_u16(&mut self) -> u16 { read_be!(self, u16) }
-    pub fn read_i16(&mut self) -> i16 { read_be!(self, i16) }
+    pub fn read_u16(&mut self) -> u16 {
+        read_be!(self, u16)
+    }
+    pub fn read_i16(&mut self) -> i16 {
+        read_be!(self, i16)
+    }
 
-    pub fn read_u32(&mut self) -> u32 { read_be!(self, u32) }
-    pub fn read_i32(&mut self) -> i32 { read_be!(self, i32) }
+    pub fn read_u32(&mut self) -> u32 {
+        read_be!(self, u32)
+    }
+    pub fn read_i32(&mut self) -> i32 {
+        read_be!(self, i32)
+    }
 
-    pub fn read_u64(&mut self) -> u64 { read_be!(self, u64) }
-    pub fn read_i64(&mut self) -> i64 { read_be!(self, i64) }
+    pub fn read_u64(&mut self) -> u64 {
+        read_be!(self, u64)
+    }
+    pub fn read_i64(&mut self) -> i64 {
+        read_be!(self, i64)
+    }
 
-    pub fn read_f32(&mut self) -> f32 { unsafe { transmute(self.read_u32()) } }
+    pub fn read_f32(&mut self) -> f32 {
+        unsafe { transmute(self.read_u32()) }
+    }
 
     pub fn read_string(&mut self) -> String {
         let len = self.read_u32() as usize;
